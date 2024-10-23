@@ -1,0 +1,41 @@
+﻿@page
+@model Report
+@{
+    ViewData["Title"] = "Report";
+}
+
+<h2>Transaction Report</h2>
+
+<div class="container mt-5">
+    <h1 class="text-center">Product List</h1>
+
+    <!-- Export Buttons -->
+    <div class="text-center mb-3">
+        <form method="post" asp-page-handler="ExportToPdf" class="d-inline">
+            <button type="submit" class="btn btn-danger">Export to PDF</button>
+        </form>
+        <form method="post" asp-page-handler="ExportToExcel" class="d-inline">
+            <button type="submit" class="btn btn-success">Export to Excel</button>
+        </form>
+    </div>
+
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var transaction in Model.TransactionLists)
+            {
+                <tr>
+                    <td>@transaction.ID</td>
+                    <td>@transaction.TransactionDate.ToShortDateString()</td>
+                    <td>@transaction.TotalAmount.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

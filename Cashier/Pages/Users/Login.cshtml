@@ -1,0 +1,55 @@
+﻿@page
+@model Login
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header text-center">
+                    <h4>Login</h4>
+                </div>
+                <div class="card-body">
+                    @* @if (ViewData.ModelState.IsValid &&)
+                    {
+                        <div class="alert alert-danger">
+                            <strong>Oops!</strong> Login 
+                            <ul>
+                                @foreach (var entry in ViewData.ModelState)
+                                {
+                                    foreach (var error in entry.Value.Errors)
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                }
+                                @if (!ModelState.IsValid)
+                                {
+                                    <li>Invalid login attempt. Please check your username and password.</li>
+                                }
+                            </ul>
+                        </div>
+                    } *@
+
+                    <form method="post">
+                        <div class="form-group mb-3">
+                            <label for="Username">Username</label>
+                            <input asp-for="User.Username" class="form-control" id="Username" placeholder="Enter your username" required />
+                            <span asp-validation-for="User.Username" class="text-danger"></span>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="Password">Password</label>
+                            <input asp-for="User.Password" class="form-control" id="Password" placeholder="Enter your password" type="password" required />
+                            <span asp-validation-for="User.Password" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p>Don't have an account? <a asp-page="/Users/Register">Register</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,32 @@
+﻿@page
+@model Products
+@{
+    ViewData["Title"] = "Products";
+}
+
+<div class="container mt-5">
+    <h1 class="text-center">Product List</h1>
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr>
+                <th hidden>ID</th>
+                <th>Product Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model.ProductLists)
+            {
+                <tr>
+                    <td hidden>@product.ID</td>
+                    <td>@product.ProductName</td>
+                    <td>@product.ProductDesc</td>
+                    <td>@product.ProductPrice.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</td>
+                    <td>@product.TotalQuantity</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
