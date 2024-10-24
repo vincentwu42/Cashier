@@ -1,5 +1,6 @@
 using Cashier.Data;
 using Cashier.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using System.Data;
 
 namespace Cashier.Pages
 {
+    //[Authorize(Roles = "Admin")]
     public class Products : PageModel
     {
         private readonly ApplicationDbContext _context;

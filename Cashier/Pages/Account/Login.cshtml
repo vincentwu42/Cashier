@@ -44,10 +44,11 @@
                             <span asp-validation-for="User.Password" class="text-danger"></span>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Login</button>
+                        @Html.AntiForgeryToken()
                     </form>
                 </div>
                 <div class="card-footer text-center">
-                    <p>Don't have an account? <a asp-page="/Users/Register">Register</a></p>
+                    <p>Don't have an account? <a asp-page="/Account/Register">Register</a></p>
                 </div>
             </div>
         </div>

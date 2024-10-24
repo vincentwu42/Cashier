@@ -10,6 +10,7 @@ namespace Cashier.Models
         public string Password { get; set; }
 
         // Foreign key relationship
+        [NotMapped]
         public int RoleID { get; set; }
         [NotMapped]
         [ValidateNever]

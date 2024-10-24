@@ -4,7 +4,7 @@
     ViewData["Title"] = "Register";
 }
 
-<div class="container mt-5">
+<div class="container p-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow">
@@ -48,18 +48,22 @@
                             <label for="RoleID">Role</label>
                             <select asp-for="User.RoleID" class="form-control" id="RoleID" required>
                                 <option value="">Select a role</option>
-                                @foreach (var role in Model.Roles)
+                                <option value="1">Admin</option>
+                                <option value="2">Cashier</option>
+
+                                @* @foreach (var role in Model.Roles)
                                 {
                                     <option value="@role.ID">@role.RoleName</option>
-                                }
+                                } *@
                             </select>
                             <span asp-validation-for="User.RoleID" class="text-danger"></span>
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Register</button>
+                        @Html.AntiForgeryToken()
                     </form>
                 </div>
                 <div class="card-footer text-center">
-                    <p>Already have an account? <a asp-page="/Users/Login">Login</a></p>
+                    <p>Already have an account? <a asp-page="/Account/Login">Login</a></p>
                 </div>
             </div>
         </div>

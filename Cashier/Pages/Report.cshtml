@@ -24,16 +24,33 @@
             <tr>
                 <th>ID</th>
                 <th>Date</th>
-                <th>Price</th>
+                <th>ProductName</th>
+                <th>Qty</th>
+                <th>Total Price</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var transaction in Model.TransactionLists)
+            @* @foreach (var transaction in Model.TransactionLists)
+            {
+            foreach (var transactionDetail in transaction.TransactionDetails)
+            {
+            <tr>
+            <td>@transaction.ID</td>
+            <td>@transaction.TransactionDate.ToShortDateString()</td>
+            <td>@transactionDetail.Product.ProductName</td>
+            <td>@transactionDetail.Quantity</td>
+            <td>@transactionDetail.UnitPrice.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</td>
+            </tr>
+            }
+            } *@
+            @foreach (var report in Model.reports)
             {
                 <tr>
-                    <td>@transaction.ID</td>
-                    <td>@transaction.TransactionDate.ToShortDateString()</td>
-                    <td>@transaction.TotalAmount.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</td>
+                    <td>@report.TransactionId</td>
+                    <td>@report.TransactionDate.ToShortDateString()</td>
+                    <td>@report.ProductName</td>
+                    <td>@report.Quantity</td>
+                    <td>@report.Price.ToString("C0", new System.Globalization.CultureInfo("id-ID"))</td>
                 </tr>
             }
         </tbody>

@@ -1,118 +1,117 @@
+using CalculatorServices;
 using Cashier.Data;
 using Cashier.Models;
+using Cashier.Services;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using OfficeOpenXml;
-using System.Drawing.Imaging;
-using System.Drawing.Printing;
-using System;
-using System.Globalization;
-using System.Text;
-using DinkToPdf;
-using DinkToPdf.Contracts;
+using System.Data;
 
 namespace Cashier.Pages
 {
+    //[Authorize(Roles = "Admin")]
     public class Report : PageModel
     {
+        private readonly CalculatorSoapClient _calculatorServices;
         private readonly ApplicationDbContext _context;
-        private readonly IConverter _converter;
+        ExportExcelServices _exportExcel;
 
         public List<Cashier.Models.Transaction> TransactionLists;
+        public List<Cashier.Models.Report> reports;
 
         public Report(ApplicationDbContext context)
         {
+            CalculatorSoapClient.EndpointConfiguration endpointConfiguration = new CalculatorSoapClient.EndpointConfiguration();
+            _calculatorServices = new CalculatorSoapClient(endpointConfiguration);
             _context = context;
+            _exportExcel = new ExportExcelServices();
         }
 
         public async Task OnGetAsync()
         {
-            TransactionLists = await _context.Transactions
-                .Include(t => t.TransactionDetails)
-                .Select(t => new Cashier.Models.Transaction
-                {
-                    ID = t.ID,
-                    TransactionDate = t.TransactionDate,
-                    TotalAmount = t.TotalAmount
-                })
+            //TransactionLists = await _context.Transactions
+            //    .Include(t => t.TransactionDetails)
+            //    .Select(t => new Cashier.Models.Transaction
+            //    {
+            //        ID = t.ID,
+            //        TransactionDate = t.TransactionDate,
+            //        TotalAmount = t.TotalAmount,
+            //        TransactionDetails = t.TransactionDetails.Select(td => new Cashier.Models.TransactionDetail { 
+            //            ID = td.ID,
+            //            ProductID = td.ProductID,
+            //            Quantity = td.Quantity,
+            //            UnitPrice = (td.UnitPrice * td.Quantity),
+            //            Product = td.Product
+            //        }).ToList()
+            //    })
+            //    .ToListAsync();
+
+            reports = await _context.Reports
+                .FromSqlRaw("EXEC Get_TransactionReport")
                 .ToListAsync();
         }
 
-        public IActionResult OnPostExportToPdf()
-        {
-            var htmlContent = GenerateHtmlContent();
-            var pdfBytes = GeneratePdfFromHtml(htmlContent);
+        //public IActionResult OnPostExportToPdf()
+        //{
+        //    var htmlContent = GenerateHtmlContent();
+        //    var pdfBytes = GeneratePdfFromHtml(htmlContent);
 
-            return File(pdfBytes, "application/pdf", "TransactionReport.pdf");
+        //    return File(pdfBytes, "application/pdf", "TransactionReport.pdf");
+        //}
+
+        public async Task<IActionResult> OnPostExportToExcel()
+        {
+            await OnGetAsync();
+            DataTable dt = ReportDataTable(reports);
+            string sheetName = "Report";
+            
+            var exportByte = _exportExcel.Export(dt, sheetName);
+            return File(exportByte, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Report.xlsx");
         }
 
-        private string GenerateHtmlContent()
+
+
+
+        DataTable ReportDataTable(List<Cashier.Models.Report> reports)
         {
-            var sb = new StringBuilder();
+            DataTable dt = new DataTable();
+            dt.Columns.Add("Transaction ID");
+            dt.Columns.Add("Transaction Date");
+            dt.Columns.Add("Product Name");
+            dt.Columns.Add("Qty");
+            dt.Columns.Add("Total Price");
 
-            sb.Append("<html><head><style>");
-            sb.Append("table { width: 100%; border-collapse: collapse; }");
-            sb.Append("th, td { border: 1px solid black; padding: 5px; text-align: left; }");
-            sb.Append("</style></head><body>");
-            sb.Append("<h2>Transaction Report</h2>");
-            sb.Append("<table><thead><tr><th>ID</th><th>Date</th><th>Price</th></tr></thead><tbody>");
+            //foreach(Cashier.Models.Transaction transaction in transactions)
+            //{
+            //    foreach(TransactionDetail transactionDetail in transaction.TransactionDetails)
+            //    {
+            //        DataRow dr = dt.NewRow();
+            //        dr[0] = transaction.ID;
+            //        dr[1] = transaction.TransactionDate;
+            //        dr[2] = transactionDetail.Product.ProductName;
+            //        dr[3] = transactionDetail.Quantity;
+            //        dr[4] = transactionDetail.Quantity * transactionDetail.Product.ProductPrice;
 
-            foreach (var transaction in TransactionLists)
+            //        dt.Rows.Add(dr);
+            //    }
+            //}
+
+            foreach (Cashier.Models.Report report in reports)
             {
-                sb.Append("<tr>");
-                sb.Append($"<td>{transaction.ID}</td>");
-                sb.Append($"<td>{transaction.TransactionDate.ToShortDateString()}</td>");
-                sb.Append($"<td>{transaction.TotalAmount.ToString("C0", new System.Globalization.CultureInfo("id-ID"))}</td>");
-                sb.Append("</tr>");
+                DataRow dr = dt.NewRow();
+                dr[0] = report.TransactionId;
+                dr[1] = report.TransactionDate;
+                dr[2] = report.ProductName;
+                dr[3] = report.Quantity;
+                dr[4] = report.Price;
+
+                dt.Rows.Add(dr);
             }
 
-            sb.Append("</tbody></table>");
-            sb.Append("</body></html>");
 
-            return sb.ToString();
-        }
-
-        private byte[] GeneratePdfFromHtml(string htmlContent)
-        {
-            var doc = new HtmlToPdfDocument()
-            {
-                GlobalSettings = {
-                    ColorMode = DinkToPdf.ColorMode.Color,
-                    Orientation = Orientation.Portrait,
-                    PaperSize = DinkToPdf.PaperKind.A4
-                },
-                Objects = {
-                    new ObjectSettings() {
-                        PagesCount = true,
-                        HtmlContent = htmlContent,
-                        WebSettings = { DefaultEncoding = "utf-8" }
-                    }
-                }
-            };
-
-            return _converter.Convert(doc);
-        }
-
-        public IActionResult OnPostExportToExcel()
-        {
-            using (var package = new ExcelPackage())
-            {
-                var worksheet = package.Workbook.Worksheets.Add("Transactions");
-                worksheet.Cells[1, 1].Value = "ID";
-                worksheet.Cells[1, 2].Value = "Transaction Date";
-                worksheet.Cells[1, 3].Value = "Total Amount";
-
-                for (int i = 0; i < TransactionLists.Count; i++)
-                {
-                    worksheet.Cells[i + 2, 1].Value = TransactionLists[i].ID;
-                    worksheet.Cells[i + 2, 2].Value = TransactionLists[i].TransactionDate.ToShortDateString();
-                    worksheet.Cells[i + 2, 3].Value = TransactionLists[i].TotalAmount.ToString("C0", new CultureInfo("id-ID"));
-                }
-
-                var excelBytes = package.GetAsByteArray();
-                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "TransactionReport.xlsx");
-            }
+            return dt;
         }
 
     }
